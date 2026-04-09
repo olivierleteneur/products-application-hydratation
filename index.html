@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#ffffff">
+  <title>Hydration — Suivi d'eau</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal-50: #E1F5EE;
+      --teal-100: #9FE1CB;
+      --teal-400: #1D9E75;
+      --teal-600: #0F6E56;
+      --teal-800: #085041;
+      --gray-bg: #f8f8f6;
+      --gray-surface: #f0efeb;
+      --gray-border: rgba(0,0,0,0.1);
+      --gray-border-strong: rgba(0,0,0,0.18);
+      --text-primary: #1a1a18;
+      --text-secondary: #6b6b67;
+      --text-hint: #9a9a96;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 16px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --teal-50: #04342C;
+        --teal-100: #085041;
+        --teal-400: #1D9E75;
+        --teal-600: #5DCAA5;
+        --teal-800: #9FE1CB;
+        --gray-bg: #1a1a18;
+        --gray-surface: #242422;
+        --gray-border: rgba(255,255,255,0.1);
+        --gray-border-strong: rgba(255,255,255,0.2);
+        --text-primary: #f0efe9;
+        --text-secondary: #9a9a96;
+        --text-hint: #6b6b67;
+      }
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--gray-bg);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 1rem 1rem 3rem;
+    }
+
+    .header {
+      text-align: center;
+      padding: 1.25rem 0 0.75rem;
+    }
+    .header-icon { font-size: 36px; line-height: 1; margin-bottom: 6px; }
+    .header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+    .header .date { font-size: 14px; color: var(--text-secondary); margin-top: 4px; text-transform: capitalize; }
+
+    .progress-section {
+      background: var(--gray-surface);
+      border: 0.5px solid var(--gray-border);
+      border-radius: var(--radius-xl);
+      padding: 1.25rem;
+      margin: 1rem 0;
+    }
+    .progress-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+    .current-vol { font-size: 28px; font-weight: 600; color: var(--teal-400); letter-spacing: -0.5px; }
+    .goal-vol { font-size: 14px; color: var(--text-secondary); }
+    .bar-bg { background: var(--gray-border); border-radius: 99px; height: 18px; overflow: hidden; }
+    .bar-fill {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, #1D9E75, #5DCAA5);
+      transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; min-width: 0;
+    }
+    .bar-pct { font-size: 11px; font-weight: 600; color: #E1F5EE; }
+    .remaining-row { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 13px; color: var(--text-secondary); }
+    .remaining-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--teal-400); flex-shrink: 0; }
+    .goal-achieved { color: var(--teal-400); font-weight: 500; }
+
+    .notif-banner {
+      background: var(--teal-50); border: 0.5px solid var(--teal-100);
+      border-radius: var(--radius-lg); padding: 10px 14px; font-size: 13px;
+      color: var(--teal-800); margin-bottom: 1rem;
+      display: none; align-items: center; gap: 10px;
+    }
+    .notif-banner button {
+      margin-left: auto; background: var(--teal-400); color: #E1F5EE;
+      border: none; border-radius: var(--radius-md); padding: 5px 10px;
+      font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap;
+    }
+
+    .section-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 10px; margin-top: 1.25rem; }
+
+    .vol-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .vol-btn {
+      background: var(--gray-surface); border: 0.5px solid var(--gray-border-strong);
+      border-radius: var(--radius-lg); padding: 16px 4px 12px;
+      cursor: pointer; text-align: center;
+      transition: background 0.12s, transform 0.1s, border-color 0.12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .vol-btn:hover { background: var(--teal-50); border-color: var(--teal-100); }
+    .vol-btn:active { transform: scale(0.93); background: var(--teal-50); }
+    .vol-btn .glass { font-size: 18px; margin-bottom: 4px; }
+    .vol-btn .num { font-size: 17px; font-weight: 600; color: var(--text-primary); line-height: 1; }
+    .vol-btn .unit { font-size: 11px; color: var(--text-secondary); margin-top: 3px; }
+
+    @keyframes ripple {
+      0%   { transform: scale(0.93); }
+      60%  { transform: scale(1.04); }
+      100% { transform: scale(1.0); }
+    }
+    .vol-btn.added { animation: ripple 0.3s ease forwards; border-color: var(--teal-400); background: var(--teal-50); }
+
+    .history-section { margin-top: 1.5rem; }
+    .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .history-header span { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+    .clear-link {
+      font-size: 13px; color: var(--text-hint); background: none;
+      border: none; cursor: pointer; padding: 0;
+      text-decoration: underline; text-decoration-color: var(--gray-border-strong);
+    }
+    .clear-link:hover { color: var(--text-secondary); }
+    .history-list { display: flex; flex-direction: column; gap: 6px; }
+    .history-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--gray-surface); border: 0.5px solid var(--gray-border);
+      border-radius: var(--radius-md); padding: 10px 14px;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+    .history-item .time { font-size: 13px; color: var(--text-secondary); }
+    .history-item .amount { font-size: 14px; font-weight: 500; color: var(--teal-600); }
+    .history-item .del-btn { background: none; border: none; color: var(--text-hint); cursor: pointer; font-size: 18px; padding: 0 0 0 10px; line-height: 1; }
+    .history-item .del-btn:hover { color: #E24B4A; }
+    .empty-state { text-align: center; padding: 1.5rem 0; font-size: 14px; color: var(--text-hint); line-height: 1.6; }
+    .footer { margin-top: 2rem; text-align: center; font-size: 12px; color: var(--text-hint); }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="header-icon">💧</div>
+    <h1>Hydration</h1>
+    <div class="date" id="dateLabel"></div>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-row">
+      <span class="current-vol" id="currentMl">0 ml</span>
+      <span class="goal-vol">/ 2 000 ml</span>
+    </div>
+    <div class="bar-bg">
+      <div class="bar-fill" id="barFill" style="width:0%">
+        <span class="bar-pct" id="barPct"></span>
+      </div>
+    </div>
+    <div class="remaining-row">
+      <div class="remaining-dot"></div>
+      <span id="remainingLabel">2 000 ml restants</span>
+    </div>
+  </div>
+
+  <div class="notif-banner" id="notifBanner">
+    <span>🔔</span>
+    <span id="notifText">Activez les rappels horaires</span>
+    <button id="notifBtn" onclick="requestNotif()">Activer</button>
+  </div>
+
+  <div class="section-label">Ajouter une consommation</div>
+  <div class="vol-grid" id="volGrid"></div>
+
+  <div class="history-section">
+    <div class="history-header">
+      <span>Aujourd'hui</span>
+      <button class="clear-link" onclick="confirmReset()">Remettre à zéro</button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+  <div class="footer">Remise à zéro automatique à minuit</div>
+</div>
+
+<script>
+const GOAL_ML = 2000;
+const VOLUMES = [125, 250, 330, 400, 500];
+const ICONS   = { 125: '🥛', 250: '🥤', 330: '🫗', 400: '🧃', 500: '🍶' };
+const REMINDER_START = 7;
+const REMINDER_END   = 22;
+const STORAGE_KEY    = 'hydration_v1';
+
+let state = loadState();
+
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const p = JSON.parse(raw);
+      if (p.date === todayStr()) return p;
+    }
+  } catch(e) {}
+  return { date: todayStr(), entries: [] };
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function getTotal() {
+  return state.entries.reduce((s, e) => s + e.vol, 0);
+}
+
+function checkMidnightReset() {
+  if (state.date !== todayStr()) {
+    state = { date: todayStr(), entries: [] };
+    saveState();
+  }
+}
+
+function confirmReset() {
+  if (state.entries.length === 0) return;
+  if (confirm('Remettre à zéro la consommation du jour ?')) {
+    state.entries = [];
+    saveState();
+    render();
+  }
+}
+
+function addEntry(vol, btnEl) {
+  checkMidnightReset();
+  const now = new Date();
+  const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  state.entries.push({ id: Date.now(), vol, time });
+  saveState();
+  render();
+  if (btnEl) {
+    btnEl.classList.add('added');
+    setTimeout(() => btnEl.classList.remove('added'), 350);
+  }
+}
+
+function deleteEntry(id) {
+  state.entries = state.entries.filter(e => e.id !== id);
+  saveState();
+  render();
+}
+
+function render() {
+  const total = getTotal();
+  const pct   = Math.min(100, Math.round((total / GOAL_ML) * 100));
+  const remaining = Math.max(0, GOAL_ML - total);
+
+  document.getElementById('dateLabel').textContent = new Date().toLocaleDateString('fr-FR', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
+
+  document.getElementById('currentMl').textContent = total.toLocaleString('fr-FR') + ' ml';
+  document.getElementById('barFill').style.width = pct + '%';
+  document.getElementById('barPct').textContent = pct >= 12 ? pct + '%' : '';
+
+  const remEl = document.getElementById('remainingLabel');
+  remEl.innerHTML = remaining === 0
+    ? '<span class="goal-achieved">✓ Objectif atteint !</span>'
+    : remaining.toLocaleString('fr-FR') + ' ml restants';
+
+  const list = document.getElementById('historyList');
+  if (state.entries.length === 0) {
+    list.innerHTML = '<div class="empty-state">Aucune consommation enregistrée.<br>Ajoutez votre première gorgée !</div>';
+  } else {
+    list.innerHTML = [...state.entries].reverse().map(e =>
+      `<div class="history-item">
+        <span class="time">${e.time}</span>
+        <span class="amount">+${e.vol} ml</span>
+        <button class="del-btn" onclick="deleteEntry(${e.id})" title="Supprimer">×</button>
+      </div>`
+    ).join('');
+  }
+}
+
+function buildButtons() {
+  const grid = document.getElementById('volGrid');
+  VOLUMES.forEach(v => {
+    const btn = document.createElement('button');
+    btn.className = 'vol-btn';
+    btn.innerHTML = `<div class="glass">${ICONS[v] || '💧'}</div><div class="num">${v}</div><div class="unit">ml</div>`;
+    btn.addEventListener('click', () => addEntry(v, btn));
+    grid.appendChild(btn);
+  });
+}
+
+/* Notifications */
+function initNotifBanner() {
+  if (!('Notification' in window)) return;
+  const banner = document.getElementById('notifBanner');
+  banner.style.display = 'flex';
+  if (Notification.permission === 'granted') {
+    document.getElementById('notifText').textContent = 'Rappels horaires activés (07h – 22h)';
+    document.getElementById('notifBtn').style.display = 'none';
+    scheduleReminders();
+  }
+}
+
+function requestNotif() {
+  if (!('Notification' in window)) return;
+  Notification.requestPermission().then(perm => {
+    if (perm === 'granted') {
+      document.getElementById('notifText').textContent = 'Rappels horaires activés (07h – 22h)';
+      document.getElementById('notifBtn').style.display = 'none';
+      scheduleReminders();
+      new Notification('💧 Hydration', { body: "Rappels activés ! Pensez à boire de l'eau." });
+    }
+  });
+}
+
+function scheduleReminders() {
+  if (Notification.permission !== 'granted') return;
+  const now = new Date();
+  const m = now.getMinutes(), s = now.getSeconds();
+  const msToNextHour = ((60 - m) * 60 - s) * 1000;
+  setTimeout(() => {
+    fireReminderIfNeeded();
+    setInterval(fireReminderIfNeeded, 3600000);
+  }, msToNextHour);
+}
+
+function fireReminderIfNeeded() {
+  const h = new Date().getHours();
+  if (h < REMINDER_START || h >= REMINDER_END) return;
+  checkMidnightReset();
+  const total = getTotal();
+  const remaining = Math.max(0, GOAL_ML - total);
+  const pct = Math.round((total / GOAL_ML) * 100);
+  const body = remaining === 0
+    ? `Bravo ! Objectif atteint avec ${total} ml 🎉`
+    : `${total} ml bus · encore ${remaining} ml restants (${pct}%)`;
+  new Notification('💧 Pensez à boire !', { body });
+}
+
+/* Remise à zéro à minuit */
+function scheduleMidnightReset() {
+  const now = new Date();
+  const midnight = new Date(now);
+  midnight.setHours(24, 0, 0, 0);
+  setTimeout(function doReset() {
+    state = { date: todayStr(), entries: [] };
+    saveState();
+    render();
+    setTimeout(doReset, 86400000);
+  }, midnight - now);
+}
+
+/* Init */
+checkMidnightReset();
+buildButtons();
+render();
+initNotifBanner();
+scheduleMidnightReset();
+setInterval(() => { checkMidnightReset(); render(); }, 60000);
+</script>
+</body>
+</html>
