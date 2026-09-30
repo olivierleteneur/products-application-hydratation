@@ -1,0 +1,14 @@
+{
+  "name": "hydratation",
+  "version": "2.0.0",
+  "description": "Daily water intake tracker: vanilla HTML/CSS/JS, no dependency, CSP-friendly",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

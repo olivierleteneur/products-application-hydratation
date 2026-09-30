@@ -1,102 +1,70 @@
 # 💧 Hydration Tracker
 
-A lightweight, single-file web app to track your daily water intake. No dependencies, no build step, no backend — just drop `index.html` on any static web host and you're good to go.
+A lightweight web app to track your daily water intake. No dependencies, no build step, no backend: drop the files on any static web host.
 
-![HTML](https://img.shields.io/badge/HTML-single%20file-blue) ![Vanilla JS](https://img.shields.io/badge/JavaScript-vanilla-yellow) ![No dependencies](https://img.shields.io/badge/dependencies-none-brightgreen)
-
----
+![Vanilla JS](https://img.shields.io/badge/JavaScript-vanilla-yellow) ![No dependencies](https://img.shields.io/badge/dependencies-none-brightgreen) ![CSP](https://img.shields.io/badge/CSP-strict%20compatible-blue)
 
 ## Features
 
-- **Daily progress bar** — displays your cumulative intake against a 2,000 ml goal, with percentage and remaining volume
-- **One-tap logging** — five volume buttons (125, 250, 330, 400, 500 ml) with a satisfying tap animation
-- **Hourly reminders** — browser push notifications every hour between 07:00 and 22:00, showing current progress
-- **Automatic midnight reset** — the day's data clears at 00:00 without any user action
-- **Entry history** — a scrollable log of every drink added today, with individual delete buttons
-- **Persistent storage** — data survives page refreshes via `localStorage`; stale data from previous days is discarded automatically
-- **Dark mode** — adapts to the system colour scheme via `prefers-color-scheme`
-- **Fully responsive** — works on desktop, tablet, and mobile; optimised for one-handed phone use
+- **Daily progress bar**: cumulative intake against a 2,000 ml goal, with percentage and remaining volume
+- **One-tap logging**: five volume buttons (125, 250, 330, 400, 500 ml)
+- **Entry history**: every drink added today, each with its own delete button
+- **Automatic midnight reset**: yesterday's data is discarded when the day changes
+- **Persistent storage** in `localStorage`; the app still works (without saving) when storage is blocked or full
+- **Hourly reminders** between 07:00 and 22:00, **while the app is open** (see below)
+- **Dark mode** following the system setting, responsive, zoom allowed, labelled controls for screen readers
 
----
-
-## Getting Started
-
-No installation or build process required.
-
-### Option 1 — Open locally
+## Getting started
 
 ```bash
-# Clone the repo
-git clone https://github.com/olivierleteneur/products-application-OVH-landingpage.git
-
-# Open in your browser
-open index.html
+git clone https://github.com/olivierleteneur/hydratation.git
+cd hydratation
+npx serve .        # or any static server
 ```
 
-> Push notifications require a secure context (HTTPS). They will not fire when opening the file directly from the filesystem (`file://`). Use a local server (e.g. `npx serve .`) or deploy to a host for full functionality.
+Opening `index.html` directly (`file://`) does not work: browsers do not load ES modules or service workers from the filesystem.
 
-### Option 2 — Deploy to a static host
+### Deploy
 
-Upload `index.html` to the root (or any subfolder) of your web host. The app is entirely self-contained — no additional files needed.
+Upload `index.html`, `style.css`, `sw.js` and the `js/` folder to any folder of a static host (OVH shared hosting, GitHub Pages, Netlify...). All paths are relative, so a subfolder such as `https://example.com/apps/hydration/` works. HTTPS is required for notifications.
 
-**OVH shared hosting example:**
+The page contains no inline script, style or event handler, so it runs under a strict Content Security Policy (`default-src 'self'`).
 
-1. Connect to your hosting via FTP (e.g. FileZilla) or through the OVH file manager
-2. Upload `index.html` to the `www/` directory (or a subdirectory such as `www/hydration/`)
-3. Access the app at `https://your-domain.ovh/` or `https://your-domain.ovh/hydration/`
+## Reminders: what they can and cannot do
 
-The app works on any static host: GitHub Pages, Netlify, Vercel, Cloudflare Pages, etc.
-
----
-
-## Push Notifications
-
-Hourly reminders are opt-in. On first visit, a banner appears at the top of the app with an **Activate** button. The browser will then request permission.
-
-- Notifications fire once per hour, on the hour, between **07:00 and 22:00**
-- Each notification shows the total volume consumed and the amount remaining
-- Notifications require HTTPS and a browser that supports the [Notifications API](https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API)
-
-**iOS note:** Safari on iOS only supports web push notifications for sites added to the Home Screen. To enable reminders on iPhone or iPad, tap **Share → Add to Home Screen**, then open the app from the Home Screen icon and accept the notification prompt.
-
----
+- Reminders are opt-in: the banner asks for notification permission.
+- They fire on the hour, between 07:00 and 22:00, with the volume drunk and the volume left.
+- They are scheduled **by the page itself**, so they only fire **while the app is open**. Mobile browsers pause background tabs, so do not count on them once the app is closed. Reminders with the app closed would need a push server (Web Push), which this project deliberately does not have.
+- Notifications go through a minimal service worker (`sw.js`), which Android Chrome requires; it caches nothing.
 
 ## Customisation
 
-All key values are defined as constants at the top of the `<script>` block in `index.html` and are easy to change:
+Constants at the top of `js/hydration.js`:
 
 | Constant | Default | Description |
 |---|---|---|
-| `GOAL_ML` | `2000` | Daily intake goal in millilitres |
+| `GOAL_ML` | `2000` | Daily goal in millilitres |
 | `VOLUMES` | `[125, 250, 330, 400, 500]` | Volume buttons (ml) |
 | `REMINDER_START` | `7` | First reminder hour (inclusive) |
 | `REMINDER_END` | `22` | Last reminder hour (exclusive) |
 
----
-
-## Browser Support
-
-| Browser | Notifications | Storage |
-|---|---|---|
-| Chrome / Edge | ✅ | ✅ |
-| Firefox | ✅ | ✅ |
-| Safari 16.4+ (HTTPS) | ✅ | ✅ |
-| Safari on iOS (Home Screen) | ✅ | ✅ |
-| Safari on iOS (in-browser) | ❌ | ✅ |
-
-The app is fully functional on all modern browsers. Push notifications are the only feature with limited support.
-
----
-
-## Project Structure
+## Project structure
 
 ```
-index.html   # The entire application — HTML, CSS, and JS in one file
-README.md    # This file
+index.html        Markup only
+style.css         Styles (light and dark)
+js/hydration.js   Pure logic: state, totals, day change, reminder schedule, storage wrapper
+js/app.js         DOM wiring and reminders
+sw.js             Service worker used to display notifications
+test/             node:test tests
 ```
 
----
+## Tests
 
-## License
+```bash
+npm test
+```
 
-MIT — free to use, modify, and distribute.
+Node 24+, no dependency. The tests cover the logic (day change, invalid or foreign stored data, volumes, progress, reminder window), storage failures (full, blocked) and the page itself (no inline code, zoom allowed, relative paths). CI runs them on every push.
+
+Released under the MIT License, see [LICENSE](LICENSE).
