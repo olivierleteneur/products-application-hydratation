@@ -17,8 +17,8 @@ A lightweight web app to track your daily water intake. No dependencies, no buil
 ## Getting started
 
 ```bash
-git clone https://github.com/olivierleteneur/hydratation.git
-cd hydratation
+git clone https://github.com/olivierleteneur/products-application-hydratation.git
+cd products-application-hydratation
 npx serve .        # or any static server
 ```
 
