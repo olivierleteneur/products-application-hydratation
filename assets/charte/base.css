@@ -1,0 +1,76 @@
+/* Minimal base defaults that enforce the usage rules. Load after tokens.css and fonts.css. */
+
+html {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size-adjust: from-font; /* keeps the fallback font visually stable during the swap */
+  line-height: var(--leading-body);
+  text-size-adjust: 100%;
+}
+
+/* A brand set on a sub-tree must switch the inherited font and colors too, not only the tokens. */
+[data-brand] {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  padding-inline: var(--gutter-left) var(--gutter-right);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  letter-spacing: var(--tracking-display);
+  line-height: var(--leading-tight);
+  text-wrap: balance;
+}
+
+p,
+li {
+  max-width: var(--measure);
+}
+
+a {
+  color: var(--link);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+[role="button"],
+select,
+input:not([type="checkbox"], [type="radio"]) {
+  min-block-size: var(--tap);
+}
+
+table {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline-color: Highlight;
+  }
+}

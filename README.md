@@ -28,6 +28,8 @@ Opening `index.html` directly (`file://`) does not work: browsers do not load ES
 
 Upload `index.html`, `style.css`, `sw.js` and the `js/` folder to any folder of a static host (OVH shared hosting, GitHub Pages, Netlify...). All paths are relative, so a subfolder such as `https://example.com/apps/hydration/` works. HTTPS is required for notifications.
 
+Design charter: Lagune brand, version 1.0 (`Charte : lagune 1.0`). The fonts are local, so a strict CSP needs `font-src 'self'`.
+
 The page contains no inline script, style or event handler, so it runs under a strict Content Security Policy (`default-src 'self'`).
 
 ## Reminders: what they can and cannot do
@@ -52,7 +54,8 @@ Constants at the top of `js/hydration.js`:
 
 ```
 index.html        Markup only
-style.css         Styles (light and dark)
+style.css         Styles of the app, built on the charte tokens (light and dark follow the system)
+assets/charte/    Design charter kit: tokens, base rules and the two Lagune fonts (self-hosted, SIL OFL)
 js/hydration.js   Pure logic: state, totals, day change, reminder schedule, storage wrapper
 js/app.js         DOM wiring and reminders
 sw.js             Service worker used to display notifications

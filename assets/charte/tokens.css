@@ -1,0 +1,127 @@
+/* Design tokens, v1.0.
+   Brands: Lagune (default, every project) and Ardoise (games: set data-brand="ardoise").
+   Themes: light and dark follow the system through color-scheme and light-dark().
+   Manual override: <meta name="color-scheme"> content "light" or "dark" (see the usage rules).
+   Needs light-dark(): Chrome 123+, Safari 17.5+, Firefox 120+.
+   Components read semantic tokens only. Never write a literal color in a component. */
+
+:root {
+  /* ---- Colors: Lagune ---- */
+  --bg: light-dark(#EEF5F4, #0F1C1D);
+  --surface: light-dark(#FAFDFC, #172829);
+  --ink: light-dark(#17302F, #E3F0EE);
+  --muted: light-dark(#4F6B6A, #9DB8B5);
+  --accent: light-dark(#1F7A7D, #5CC4C0);
+  --on-accent: light-dark(#FFFFFF, #08201F);
+  --accent-2: light-dark(#E0735F, #F29A86); /* decoration only: never text, never the sole signal */
+  --link: light-dark(#17666A, #7AD6D2);
+
+  /* ---- Status (always paired with an icon or a word, never color alone) ---- */
+  --ok: light-dark(#25694B, #6FCB9F);
+  --warn: light-dark(#8A5A00, #E8B861);
+  --bad: light-dark(#A8342F, #F0877F);
+
+  /* ---- Typography ---- */
+  --font-display: "Gabarito", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --weight-display: 600;
+  --tracking-display: -0.01em;
+  --leading-tight: 1.1;
+  --leading-body: 1.55;
+  --measure: 65ch;
+
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: clamp(1.5rem, 1.2rem + 1.2vw, 1.875rem);
+  --text-3xl: clamp(1.875rem, 1.3rem + 2.2vw, 2.75rem);
+  --text-4xl: clamp(2.25rem, 1.4rem + 3.4vw, 3.5rem);
+
+  /* ---- Space (4 px base) ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+  --tap: 2.75rem; /* minimum touch target: 44 px */
+  --gutter-left: max(1rem, env(safe-area-inset-left, 0px));
+  --gutter-right: max(1rem, env(safe-area-inset-right, 0px));
+
+  /* ---- Shape ---- */
+  --radius: 20px; /* cards, panels */
+  --radius-sm: 12px; /* inputs, small blocks */
+  --radius-btn: 14px;
+  --radius-pill: 999px;
+  --shadow: 0 12px 32px -14px color-mix(in srgb, var(--ink) 30%, transparent);
+
+  /* ---- Motion ---- */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur-fast: 150ms;
+  --dur: 250ms;
+
+  /* ---- Browser UI ---- */
+  color-scheme: light dark;
+  accent-color: var(--accent);
+}
+
+/* Manual override, driven by <meta name="color-scheme">. Without JS the site follows the system. */
+:root:has(> head > meta[name="color-scheme"][content="light"]) {
+  color-scheme: light;
+}
+:root:has(> head > meta[name="color-scheme"][content="dark"]) {
+  color-scheme: dark;
+}
+
+/* ---- Games: Ardoise ---- */
+[data-brand="ardoise"] {
+  --bg: light-dark(#EFF1F6, #12161F);
+  --surface: light-dark(#FFFFFF, #1B2130);
+  --ink: light-dark(#1D2433, #E8EBF4);
+  --muted: light-dark(#586178, #A0A9C0);
+  --accent: light-dark(#4C5FD5, #8E9CFF);
+  --on-accent: light-dark(#FFFFFF, #0E1230);
+  --accent-2: light-dark(#F2C75C, #F2D07A);
+  --link: light-dark(#3F50BF, #A6B1FF);
+
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --weight-display: 700;
+  --tracking-display: -0.02em;
+
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-btn: 8px;
+  --radius-pill: 6px;
+  --shadow: none; /* flat: depth comes from borders and surface contrast */
+}
+
+/* ---- Derived tokens ----
+   Declared for both :root and any [data-brand] container, so a brand set on a sub-tree
+   recomputes them from its own palette. Explicit "in srgb" keeps values predictable and testable. */
+:root,
+[data-brand] {
+  --line: color-mix(in srgb, var(--ink) 13%, var(--surface));
+  --line-strong: color-mix(in srgb, var(--ink) 26%, var(--surface));
+  --field: color-mix(in srgb, var(--ink) 55%, var(--surface)); /* input and control borders, 3:1 */
+  --sunken: color-mix(in srgb, var(--ink) 5%, var(--bg));
+  --accent-soft: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  --accent-2-soft: color-mix(in srgb, var(--accent-2) 24%, var(--surface));
+  --ok-soft: color-mix(in srgb, var(--ok) 13%, var(--surface));
+  --warn-soft: color-mix(in srgb, var(--warn) 14%, var(--surface));
+  --bad-soft: color-mix(in srgb, var(--bad) 12%, var(--surface));
+  --focus: var(--link);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root,
+  [data-brand] {
+    --dur-fast: 0.01ms;
+    --dur: 0.01ms;
+  }
+}

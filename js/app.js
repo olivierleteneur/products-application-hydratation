@@ -4,7 +4,8 @@ import {
   msUntilNextHour, progress, reminderText, removeEntry, rollover, total,
 } from "./hydration.js";
 
-const ICONS = { 125: "🥛", 250: "🥤", 330: "🫗", 400: "🧃", 500: "🍶" };
+const SVG = "http://www.w3.org/2000/svg";
+const MAX_VOLUME = Math.max(...VOLUMES);
 const $ = (id) => document.getElementById(id);
 const store = createStore(() => window.localStorage);
 let state = store.load(new Date());
@@ -14,6 +15,25 @@ function el(tag, className, text) {
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
+}
+
+// A glass drawn in SVG, filled in proportion to the volume (no emoji, no bitmap: colors come from the CSS tokens).
+function glassIcon(vol) {
+  const top = 20.5 - 14 * (vol / MAX_VOLUME);
+  const left = 6 + (top - 3) * 0.093;
+  const right = 18 - (top - 3) * 0.093;
+  const svg = document.createElementNS(SVG, "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("class", "glass");
+  const water = document.createElementNS(SVG, "polygon");
+  water.setAttribute("class", "water");
+  water.setAttribute("points", `${left.toFixed(2)},${top.toFixed(2)} ${right.toFixed(2)},${top.toFixed(2)} 16.4,20.5 7.6,20.5`);
+  const rim = document.createElementNS(SVG, "path");
+  rim.setAttribute("class", "rim");
+  rim.setAttribute("d", "M6 3h12l-1.6 17.3a1.5 1.5 0 0 1-1.5 1.2H9.1a1.5 1.5 0 0 1-1.5-1.2Z");
+  svg.append(water, rim);
+  return svg;
 }
 
 function commit(next) {
@@ -67,7 +87,7 @@ function buildButtons() {
     const btn = el("button", "vol-btn");
     btn.type = "button";
     btn.setAttribute("aria-label", `Ajouter ${vol} ml`);
-    btn.append(el("div", "glass", ICONS[vol] ?? "💧"), el("div", "num", String(vol)), el("div", "unit", "ml"));
+    btn.append(glassIcon(vol), el("div", "num", String(vol)), el("div", "unit", "ml"));
     btn.addEventListener("click", () => {
       commit(addEntry(state, vol, new Date()));
       btn.classList.add("added");
@@ -112,7 +132,7 @@ function scheduleReminder() {
   setTimeout(() => {
     const now = new Date();
     if (Notification.permission === "granted" && isReminderHour(now.getHours())) {
-      notify("💧 Pensez à boire !", reminderText(total(rollover(state, now))));
+      notify("Pensez à boire !", reminderText(total(rollover(state, now))));
     }
     scheduleReminder();
   }, msUntilNextHour(new Date()));
@@ -124,7 +144,7 @@ function initReminders() {
   $("notifBtn").addEventListener("click", async () => {
     const permission = await Notification.requestPermission();
     updateBanner();
-    if (permission === "granted") notify("💧 Hydration", "Rappels activés ! Pensez à boire de l'eau.");
+    if (permission === "granted") notify("Hydration", "Rappels activés ! Pensez à boire de l'eau.");
   });
   scheduleReminder();
 }
